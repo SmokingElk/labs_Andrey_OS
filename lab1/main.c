@@ -12,7 +12,7 @@ int main() {
     printf("Input filename: ");
     scanf("%s", filename);
 
-    int file = open(filename, O_CREAT | O_WRONLY, 0644);
+    int file = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0644);
 
     int pipe1[2];  
     int pipe2[2]; 
@@ -33,20 +33,24 @@ int main() {
         close(pipe1[1]);
         close(pipe2[0]);
 
-        if (dup2(pipe1[0], 0) == -1) {
+        if (dup2(pipe1[0], STDIN_FILENO) == -1) {
             perror("dup2");
             exit(EXIT_FAILURE);
         }
 
-        if (dup2(file, 1) == -1) {
+        if (dup2(file, STDOUT_FILENO) == -1) {
             perror("dup2");
             exit(EXIT_FAILURE);
         }
 
-        if (dup2(pipe2[1], 2) == -1) {
+        if (dup2(pipe2[1], STDERR_FILENO) == -1) {
             perror("dup2");
             exit(EXIT_FAILURE);
         }
+
+        close(pipe1[0]);
+        close(pipe2[1]);
+        close(file);
 
         char *const *null = NULL;
         if (execv("./child.out", null) == -1) {
@@ -56,6 +60,7 @@ int main() {
     } else {
         close(pipe1[0]);
         close(pipe2[1]);
+        close(file);
     
         char buffer[30];
         
@@ -64,7 +69,7 @@ int main() {
 
             if (strcmp(buffer, "exit") == 0) break;
 
-            if (write(pipe1[1], &buffer, strlen(buffer) + 1) == -1) {
+            if (write(pipe1[1], buffer, strlen(buffer) + 1) == -1) {
                 perror("write");
                 exit(EXIT_FAILURE);
             }

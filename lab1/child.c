@@ -19,7 +19,7 @@ int main () {
     int errorCode;
 
     while (1) {
-        while (read(0, &letter, sizeof(letter))) {
+        while (read(STDIN_FILENO, &letter, sizeof(letter))) {
             str[i++] = letter;
             if (letter == '\0') break;
         }
@@ -27,12 +27,12 @@ int main () {
         i--;
         
         if (isStringCorrect(str, i)) {
-            write(1, str, i);
-            write(1, "\n", sizeof(char));
+            write(STDOUT_FILENO, str, i);
+            write(STDOUT_FILENO, "\n", sizeof(char));
             errorCode = 0;
         } else errorCode = 1;
 
-        if (write(2, &errorCode, sizeof(errorCode)) == -1) {
+        if (write(STDERR_FILENO, &errorCode, sizeof(errorCode)) == -1) {
             perror("write");
             exit(EXIT_FAILURE);
         }
