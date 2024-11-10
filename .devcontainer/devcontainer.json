@@ -1,0 +1,14 @@
+{
+    "name": "OS labs",
+    "dockerFile": "Dockerfile",
+    "context": "..",
+    "appPort": [],
+    "extensions": [
+        "ms-vscode.cpptools",
+        "vscode.cpptools-extension-pack"
+    ],
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "postCreateCommand": "apt-get update && git config --global --add safe.directory '*'"
+}
