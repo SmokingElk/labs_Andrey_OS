@@ -66,6 +66,9 @@
         "variant": "cpp",
         "format": "cpp",
         "text_encoding": "cpp",
-        "cstring": "cpp"
-    }
+        "cstring": "cpp",
+        "stdlib.h": "c",
+        "stdbool.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
