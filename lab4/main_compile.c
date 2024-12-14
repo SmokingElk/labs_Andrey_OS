@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include "prime_count.h"
-#include "gcf.h"
+#include "area.h"
+#include "sort.h"
 
 int main () {
     while (1) {
@@ -9,8 +9,8 @@ int main () {
         bool fail = false;
 
         printf("Input command:\n");
-        printf("1 - count primes\n");
-        printf("2 - calculate gcf\n");
+        printf("1 - calc area\n");
+        printf("2 - sort array\n");
         printf("-1 - exit\n");
 
         scanf("%d", &command);
@@ -19,21 +19,21 @@ int main () {
 
         switch (command) {
             case 1:
-                printf("Input segment borders: ");
+                printf("Input sides: ");
                 scanf("%d %d", &a, &b);
 
-                printf("Input way to count primes:\n");
-                printf("1 - naive\n");
-                printf("2 - Eratosthenes' sieve\n");
+                printf("Input figure:\n");
+                printf("1 - rectangle\n");
+                printf("2 - triangle\n");
                 scanf("%d", &calcWay);
 
                 switch (calcWay) {
                     case 1:
-                        res = primeCountNaive(a, b);
+                        res = areaRectangle(a, b);
                         break;
 
                     case 2:
-                        res = primeCountEratosthenes(a, b);
+                        res = areaTriangle(a, b);
                         break;
                     
                     default:
@@ -41,26 +41,29 @@ int main () {
                         fail = true;
                 }
 
-                if (!fail) printf("%d prime numbers\n", res);
+                if (!fail) printf("Area: %d\n", res);
 
                 break;
 
             case 2:
-                printf("Input A and B: ");
-                scanf("%d %d", &a, &b);
+                printf("Input numbers\n");
 
-                printf("Input way to find gcf:\n");
-                printf("1 - Euclidean\n");
-                printf("2 - naive\n");
+                int arr[10];
+                
+                for (int i = 0; i < 10; i++) scanf("%d", arr + i);
+
+                printf("Input way to sort:\n");
+                printf("1 - bubble\n");
+                printf("2 - quick\n");
                 scanf("%d", &calcWay);
 
                 switch (calcWay) {
                     case 1:
-                        res = gcfEuclid(a, b);
+                        sortBubble(arr, 0, 9);
                         break;
 
                     case 2:
-                        res = gcfNaive(a, b);
+                        sortQuick(arr, 0, 9);
                         break;
                     
                     default:
@@ -68,7 +71,8 @@ int main () {
                         fail = true;
                 }
 
-                if (!fail) printf("GCF: %d\n", res);
+                if (!fail) for (int i = 0; i < 10; i++) printf("%d ", arr[i]);
+                printf("\n");
 
                 break;
             

@@ -1,7 +1,7 @@
-all: prime_count gcf main_compile main_dl link
+all: area sort main_compile main_dl link
 
 link: 
-	gcc prime_count.o gcf.o main_compile.o -o app_compile.out
+	gcc area.o sort.o main_compile.o -o app_compile.out
 	gcc main_dl.o -o app_dl.out
 
 main_compile: main_compile.c
@@ -10,13 +10,13 @@ main_compile: main_compile.c
 main_dl: main_dl.c
 	gcc -c main_dl.c -o main_dl.o
 
-prime_count: prime_count.c
-	gcc -c prime_count.c -o prime_count.o
-	gcc -shared -rdynamic prime_count.c -o prime_count.so
+area: area.c
+	gcc -c area.c -o area.o
+	gcc -shared -rdynamic area.c -o area.so
 
-gcf: gcf.c
-	gcc -c gcf.c -o gcf.o
-	gcc -shared -rdynamic gcf.c -o gcf.so
+sort: sort.c
+	gcc -c sort.c -o sort.o
+	gcc -shared -rdynamic sort.c -o sort.so
 
 clean:
 	rm *.out

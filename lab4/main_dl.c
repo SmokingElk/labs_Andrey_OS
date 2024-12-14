@@ -2,15 +2,15 @@
 #include <stdbool.h>
 #include <dlfcn.h>
 
-typedef int (*PrimeCountFunction)(int, int);
-typedef int (*GCFFunction)(int, int);
+typedef int (*AreaFunction)(int, int);
+typedef int *(*SortFunction)(int*, int, int);
 
 int main () {
-    void *libPrimeCountHandle = NULL;
-    void *libGCFHandle = NULL;
+    void *libArea = NULL;
+    void *libSort = NULL;
 
-    PrimeCountFunction primeCountFunction = NULL;
-    GCFFunction gcfFunction = NULL;
+    AreaFunction areaFunction = NULL;
+    SortFunction sortFunction = NULL;
 
     char *error;
 
@@ -20,8 +20,8 @@ int main () {
 
         printf("Input command:\n");
         printf("0 - load libraties\n");
-        printf("1 - count primes\n");
-        printf("2 - calculate gcf\n");
+        printf("1 - calc area\n");
+        printf("2 - sort array\n");
         printf("-1 - exit\n");
 
         scanf("%d", &command);
@@ -30,26 +30,26 @@ int main () {
 
         switch (command) {
             case 0:
-                if (libPrimeCountHandle) dlclose(libPrimeCountHandle);
-                if (libGCFHandle) dlclose(libGCFHandle);
+                if (libArea) dlclose(libArea);
+                if (libSort) dlclose(libSort);
 
-                char primeCountLibName[50], gcfLibName[50];
-                printf("Input prime count library name: ");
-                scanf("%50s", primeCountLibName);
+                char areaLibName[50], sortLibName[50];
+                printf("Input area library name: ");
+                scanf("%50s", areaLibName);
 
-                libPrimeCountHandle = dlopen(primeCountLibName, RTLD_LAZY);
-                if (!libPrimeCountHandle) {
-                    fprintf(stderr, "Error loading %s: %s\n", primeCountLibName, dlerror());
+                libArea = dlopen(areaLibName, RTLD_LAZY);
+                if (!libArea) {
+                    fprintf(stderr, "Error loading %s: %s\n", areaLibName, dlerror());
                     break;
                 }
 
-                printf("Input gcf library name: ");
-                scanf("%50s", gcfLibName);
+                printf("Input sort library name: ");
+                scanf("%50s", sortLibName);
 
-                libGCFHandle = dlopen(gcfLibName, RTLD_LAZY);
-                if (!libGCFHandle) {
-                    fprintf(stderr, "Error loading %s: %s\n", gcfLibName, dlerror());
-                    dlclose(libPrimeCountHandle);
+                libSort = dlopen(sortLibName, RTLD_LAZY);
+                if (!libSort) {
+                    fprintf(stderr, "Error loading %s: %s\n", sortLibName, dlerror());
+                    dlclose(libArea);
                     break;
                 }
 
@@ -57,21 +57,21 @@ int main () {
                 break;
 
             case 1:
-                printf("Input segment borders: ");
+                printf("Input sides: ");
                 scanf("%d %d", &a, &b);
 
-                printf("Input way to count primes:\n");
-                printf("1 - naive\n");
-                printf("2 - Eratosthenes' sieve\n");
+                printf("Input figure:\n");
+                printf("1 - rectangle\n");
+                printf("2 - triangle\n");
                 scanf("%d", &calcWay);
 
                 switch (calcWay) {
                     case 1:
-                        primeCountFunction = (PrimeCountFunction)dlsym(libPrimeCountHandle, "primeCountNaive");
+                        areaFunction = (AreaFunction)dlsym(libArea, "areaRectangle");
                         break;
 
                     case 2:
-                        primeCountFunction = (PrimeCountFunction)dlsym(libPrimeCountHandle, "primeCountEratosthenes");
+                        areaFunction = (AreaFunction)dlsym(libArea, "areaTriangle");
                         break;
                     
                     default:
@@ -85,28 +85,31 @@ int main () {
                 }
 
                 if (!fail) {
-                    res = primeCountFunction(a, b);
-                    printf("%d prime numbers\n", res);
+                    res = areaFunction(a, b);
+                    printf("area: %d\n", res);
                 } 
 
                 break;
 
             case 2:
-                printf("Input A and B: ");
-                scanf("%d %d", &a, &b);
+                printf("Input numbers\n");
 
-                printf("Input way to find gcf:\n");
-                printf("1 - Euclidean\n");
-                printf("2 - naive\n");
+                int arr[10];
+                
+                for (int i = 0; i < 10; i++) scanf("%d", arr + i);
+
+                printf("Input way to sort:\n");
+                printf("1 - bubble\n");
+                printf("2 - quick\n");
                 scanf("%d", &calcWay);
 
                 switch (calcWay) {
                     case 1:
-                        gcfFunction = (GCFFunction)dlsym(libGCFHandle, "gcfEuclid");
+                        sortFunction = (SortFunction)dlsym(libSort, "sortBubble");
                         break;
 
                     case 2:
-                        gcfFunction = (GCFFunction)dlsym(libGCFHandle, "gcfNaive");
+                        sortFunction = (SortFunction)dlsym(libSort, "sortQuick");
                         break;
                     
                     default:
@@ -120,8 +123,9 @@ int main () {
                 }
 
                 if (!fail) {
-                    res = gcfFunction(a, b);
-                    printf("GCF: %d\n", res);
+                    sortFunction(arr, 0, 9);
+                    for (int i = 0; i < 10; i++) printf("%d ", arr[i]);
+                    printf("\n");
                 } 
 
                 break;
@@ -134,8 +138,8 @@ int main () {
         printf("\n");
     }
 
-    if (libPrimeCountHandle) dlclose(libPrimeCountHandle);
-    if (libGCFHandle) dlclose(libGCFHandle);
+    if (libArea) dlclose(libArea);
+    if (libSort) dlclose(libSort);
     
     printf("exit\n");
 
