@@ -8,3 +8,6 @@ run:
 
 test:
 	./app.out 4 < test.txt
+
+strace:
+	strace ./app.out 4

@@ -22,3 +22,6 @@ clean:
 	rm *.out
 	rm *.so
 	rm *.o
+
+strace:
+	strace ./app_dl.out

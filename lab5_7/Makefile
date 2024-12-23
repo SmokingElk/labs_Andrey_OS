@@ -16,3 +16,6 @@ clean:
 run_server:
 	sudo systemctl enable rabbitmq-server
 	sudo systemctl start rabbitmq-server
+
+strace:
+	strace ./master_node.out

@@ -68,7 +68,10 @@
         "text_encoding": "cpp",
         "cstring": "cpp",
         "stdlib.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "mman.h": "c",
+        "string.h": "c",
+        "shm_server.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

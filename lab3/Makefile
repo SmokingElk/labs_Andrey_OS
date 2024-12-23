@@ -13,4 +13,6 @@ child: child.c
 
 rm_last_out:
 	rm 2> /dev/null *.txt || true
-	
+
+strace:
+	strace ./main.out

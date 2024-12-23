@@ -91,10 +91,11 @@ pid_t getPidTopology (Topology topology, int id) {
 }
 
 void deleteHandler (Topology node) {
-    if (kill(node->pid, SIGKILL) == -1) {
-        perror("kill");
-        exit(EXIT_FAILURE);
-    }
+    // хотел килять процессы вручную по завершении, но там бывает ошибки возникают из-за этого
+    // if (kill(node->pid, SIGKILL) == -1) {
+    //     perror("kill");
+    //     exit(EXIT_FAILURE);
+    // }
 }
 
 bool printNotAvailable (Topology topology) {
