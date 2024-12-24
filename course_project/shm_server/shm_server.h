@@ -3,11 +3,11 @@
 #include <stdbool.h>
 #include "pthread.h"
 
-#define _SERVER_NAME_MAX_LEN 64
-#define _MAX_CONTENT_LENGTH 256
-#define _MAX_MESSAGES_COUNT 64
+#define SERVER_NAME_MAX_LEN 64
+#define MAX_CONTENT_LENGTH 256
+#define MAX_MESSAGES_COUNT 64
 
-typedef char _Content[_MAX_CONTENT_LENGTH];
+typedef char _Content[MAX_CONTENT_LENGTH];
 
 typedef struct {
     _Content content;
@@ -16,7 +16,7 @@ typedef struct {
 } _Package, *Package;
 
 typedef struct {
-    _Package location[_MAX_MESSAGES_COUNT];
+    _Package location[MAX_MESSAGES_COUNT];
     size_t size;
     size_t topIndex;
 } _PackageQueue;
@@ -32,7 +32,7 @@ typedef struct {
 typedef struct {
     int shmFD; 
     _ShmLayout *layout;
-    char memoryName[_SERVER_NAME_MAX_LEN];
+    char memoryName[SERVER_NAME_MAX_LEN];
 } _ShmConnection, *ShmConnection;
 
 typedef ShmConnection HostConnection;
@@ -62,4 +62,5 @@ typedef void (*RequestHandler)(Package, Server);
 
 Server createServer (char *serverName, RequestHandler requestHandler);
 void sendResponseServer (Server server, Package responseTo, char *content);
+void sendMessageServer (Server server, uuid_t clientID, char *content);
 void deleteServer (Server server);

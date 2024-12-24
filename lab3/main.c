@@ -96,7 +96,7 @@ int main() {
             pthread_mutex_unlock(&shared_data->mutex);
 
             if (isEnd == 1) {
-                printf("Bullet-tooth open the dog! Endline must be there!\n");
+                printf("Error!\n");
             }
         }
 

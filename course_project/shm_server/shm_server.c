@@ -30,16 +30,16 @@ Package _topQueue (_PackageQueue *queue) {
 
 void _popQueue (_PackageQueue *queue) {
     queue->size--;
-    queue->topIndex = (queue->topIndex + 1) % _MAX_MESSAGES_COUNT;
+    queue->topIndex = (queue->topIndex + 1) % MAX_MESSAGES_COUNT;
 }
 
 bool _pushQueue (_PackageQueue *queue, uuid_t clientID, uuid_t messageID, char *content) {
-    if (queue->size >= _MAX_MESSAGES_COUNT) return false;
+    if (queue->size >= MAX_MESSAGES_COUNT) return false;
 
-    size_t tailIndex = (queue->topIndex + queue->size) % _MAX_MESSAGES_COUNT;
+    size_t tailIndex = (queue->topIndex + queue->size) % MAX_MESSAGES_COUNT;
     Package newPackage = &queue->location[tailIndex];
 
-    strncpy(newPackage->content, content, _MAX_CONTENT_LENGTH);
+    strncpy(newPackage->content, content, MAX_CONTENT_LENGTH);
     uuid_copy(newPackage->clientID, clientID);
     uuid_copy(newPackage->messageID, messageID);
 
@@ -57,7 +57,7 @@ void _initShmSegment (_ShmLayout *layout) {
 ShmConnection _createConnection (char *memoryName) {
     ShmConnection connection = (ShmConnection)malloc(sizeof(_ShmConnection));
     
-    strncpy(connection->memoryName, memoryName, _SERVER_NAME_MAX_LEN);
+    strncpy(connection->memoryName, memoryName, SERVER_NAME_MAX_LEN);
 
     connection->shmFD = shm_open(connection->memoryName, O_RDWR, 0666);
     if (connection->shmFD == -1) {
@@ -113,7 +113,7 @@ void _closeConnection (ShmConnection connection) {
 HostConnection _createHostConnection (char *memoryName) {
     HostConnection connection = (HostConnection)malloc(sizeof(_ShmConnection));
 
-    strncpy(connection->memoryName, memoryName, _SERVER_NAME_MAX_LEN);
+    strncpy(connection->memoryName, memoryName, SERVER_NAME_MAX_LEN);
 
     connection->shmFD = shm_open(connection->memoryName, O_CREAT | O_RDWR, 0666);
     if (connection->shmFD == -1) {
@@ -218,6 +218,7 @@ void *_requestListenerFunc (void *_server) {
         if (message == NULL) continue;
 
         server->requestHandler(message, server);
+        puts("");
         _acquireMessageHostConnection(server->connection);
     }
 
@@ -240,6 +241,12 @@ Server createServer (char *serverName, RequestHandler requestHandler) {
 
 void sendResponseServer (Server server, Package responseTo, char *content) {
     _sendResponseHostConnection(server->connection, responseTo->clientID, responseTo->messageID, content);
+}
+
+void sendMessageServer (Server server, uuid_t clientID, char *content) {
+    uuid_t randomID;
+    uuid_generate(randomID);
+    _sendResponseHostConnection(server->connection, clientID, randomID, content);
 }
 
 void deleteServer (Server server) {

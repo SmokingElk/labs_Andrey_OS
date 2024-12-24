@@ -71,7 +71,11 @@
         "stdbool.h": "c",
         "mman.h": "c",
         "string.h": "c",
-        "shm_server.h": "c"
+        "shm_server.h": "c",
+        "linkedlist.h": "c",
+        "map": "cpp",
+        "map.h": "c",
+        "config.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

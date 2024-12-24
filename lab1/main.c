@@ -82,7 +82,7 @@ int main() {
             }
 
             if (errorCode == 1) {
-                printf("Bullet-tooth open the dog! Endline must be there!\n");
+                printf("Error!\n");
             }
         }
 

@@ -36,14 +36,9 @@ void bitonicSort (std::vector<int> &vec, size_t start, size_t size, std::mutex &
         uniqueLock.unlock();
 
         std::thread th1(bitonicSort, std::ref(vec), start, halfSize, std::ref(mtx), std::ref(threadsCount), maxThreads, dir);
-        //std::thread th2(bitonicSort, std::ref(vec), start + halfSize, halfSize, std::ref(mtx), std::ref(threadsCount), maxThreads, !dir);
         bitonicSort(vec, start + halfSize, halfSize, mtx, threadsCount, maxThreads, !dir);
 
         th1.join();
-        //th2.join();
-
-        // 16825005
-        // 22844319
 
         uniqueLock.lock();
         threadsCount -= 1;
