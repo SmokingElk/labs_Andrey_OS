@@ -8,6 +8,7 @@
 
 Server server;
 Map games;
+Map actions;
 
 typedef struct {
     size_t bulls;
@@ -152,7 +153,7 @@ bool removePlayer (Game game, uuid_t id) {
 }
 
 void tryStart (Game game) {
-    if (game->playersConnected < game->playersMaxCount || game->start) return;
+    if (game->playersConnected < game->playersMaxCount || (game->start && game->playersConnected != 1)) return;
 
     game->start = true;
     game->currentPlayer = iterPrev(beginList(game->players));
@@ -212,6 +213,81 @@ void endGame (Game game, uuid_t id) {
     }
 }
 
+typedef void (*Action)(Package, Server, char*);
+
+#define sendFail(text) { sendResponseServer(server, request, (text)); return; }
+
+void actionCreate (Package request, Server server, char *content) {
+    char *gameName = strtok(NULL, " ");
+    if (gameName == NULL) sendFail("game_name not specified");
+
+    char *word = strtok(NULL, " ");
+    if (word == NULL) sendFail("word not specified");
+
+    char *playersCountStr = strtok(NULL, " ");
+    if (playersCountStr == NULL) sendFail("players_count not specified");
+    size_t playersCount = atoi(playersCountStr);
+
+    if (playersCount < 0) sendFail("incorrect players count");
+
+    if (hasMap(games, gameName)) sendFail("game already exists");
+
+    setMap(games, gameName, createGame(playersCount, gameName, word));
+    sendResponseServer(server, request, "game is created");
+}
+
+void actionJoin (Package request, Server server, char *content) {
+    char *gameName = strtok(NULL, " ");
+    if (gameName == NULL) sendFail("#game_name not specified");
+
+    char *playerName = strtok(NULL, " ");
+    if (playerName == NULL) sendFail("#player_name not specified");
+
+    if (!hasMap(games, gameName)) {
+        sendResponseServer(server, request, "#game not exists");
+        return;
+    }
+
+    Game game = getMap(Game, games, gameName);
+    bool success = addPlayer(game, playerName, request->clientID);
+    
+    if (success) {
+        sendResponseServer(server, request, "successfully joined");
+        tryStart(game);
+    } else sendFail("#max players count reached");
+}
+
+void actionLeave (Package request, Server server, char *content) {
+    char *gameName = strtok(NULL, " ");
+    if (gameName == NULL) sendFail("game_name not specified");
+
+    if (!hasMap(games, gameName)) sendFail("game not exists");
+
+    Game game = getMap(Game, games, gameName);
+    removePlayer(game, request->clientID);
+    sendResponseServer(server, request, "#leaving this game");
+}
+
+void actionAttempt (Package request, Server server, char *content) {
+    char *gameName = strtok(NULL, " ");
+    if (gameName == NULL) sendFail("game_name not specified");
+
+    char *assumption = strtok(NULL, " ");
+    if (gameName == NULL) sendFail("assumption not specified");
+
+    if (!hasMap(games, gameName)) sendFail("game not exists");
+
+    Game game = getMap(Game, games, gameName);
+
+    bool isWin = playerAttempt(game, request->clientID, assumption, request);
+    
+    if (isWin) {
+        endGame(game, request->clientID);
+        removeMap(games, game->name);
+        deleteGame(game);
+    }
+}
+
 void requestHandler (Package request, Server server) {
     char content[MAX_CONTENT_LENGTH];
     strncpy(content, request->content, sizeof(content));
@@ -220,68 +296,23 @@ void requestHandler (Package request, Server server) {
 
     char *requestType = strtok(content, " ");
 
-    if (strcmp(requestType, "create") == 0) {
-        char *gameName = strtok(NULL, " ");
-        char *word = strtok(NULL, " ");
-        size_t playersCount = atoi(strtok(NULL, " "));
-
-        if (hasMap(games, gameName)) {
-            sendResponseServer(server, request, "game already exists");
-            return;
-        }
-
-        setMap(games, gameName, createGame(playersCount, gameName, word));
-        sendResponseServer(server, request, "game is created");
-    } else if (strcmp(requestType, "join") == 0) {
-        char *gameName = strtok(NULL, " ");
-        char *playerName = strtok(NULL, " ");
-
-        if (!hasMap(games, gameName)) {
-            sendResponseServer(server, request, "#game not exists");
-            return;
-        }
-
-        Game game = getMap(Game, games, gameName);
-        bool success = addPlayer(game, playerName, request->clientID);
-        
-        if (success) {
-            sendResponseServer(server, request, "successfully joined");
-            tryStart(game);
-        } else sendResponseServer(server, request, "#max players count reached");
-    } else if (strcmp(requestType, "leave") == 0) {
-        char *gameName = strtok(NULL, " ");
-
-        if (!hasMap(games, gameName)) {
-            sendResponseServer(server, request, "game not exists");
-            return;
-        }
-
-        Game game = getMap(Game, games, gameName);
-        removePlayer(game, request->clientID);
-        sendResponseServer(server, request, "#leaving this game");
-    } else if (strcmp(requestType, "attempt") == 0) {
-        char *gameName = strtok(NULL, " ");
-        char *assumption = strtok(NULL, " ");
-
-        if (!hasMap(games, gameName)) {
-            sendResponseServer(server, request, "game not exists");
-            return;
-        }
-
-        Game game = getMap(Game, games, gameName);
-
-        bool isWin = playerAttempt(game, request->clientID, assumption, request);
-        
-        if (isWin) {
-            endGame(game, request->clientID);
-            removeMap(games, game->name);
-            deleteGame(game);
-        } 
+    if (!hasMap(actions, requestType)) {
+        sendResponseServer(server, request, "unknown server action");
+        return;
     }
+
+    Action action = getMap(Action, actions, requestType);
+    action(request, server, content);
 }
 
 int main () {
     games = createMap(10);
+    actions = createMap(10);
+
+    setMap(actions, SERVER_ACTION_CREATE, actionCreate);
+    setMap(actions, SERVER_ACTION_JOIN, actionJoin);
+    setMap(actions, SERVER_ACTION_LEAVE, actionLeave);
+    setMap(actions, SERVER_ACTION_ATTEMPT, actionAttempt);
     
     server = createServer(
         SERVER_NAME, 
